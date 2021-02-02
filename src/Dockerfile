@@ -11,5 +11,3 @@ RUN groupadd -r app_user && \
     useradd --no-log-init --create-home -r -g app_user app_user
 
 USER app_user
-
-CMD ["bash"]
