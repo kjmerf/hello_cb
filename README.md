@@ -6,4 +6,5 @@ Then create an API key associated with the account.
 Set the following environment variables with the credentials generated:
 ```CB_API_KEY``` and ```CB_API_SECRET```.
 
-Once the setup is complete, simply run ```/up.sh``` to see BTC prices.
+Once the setup is complete, simply run ```/up.sh``` to start the bot.
+The bot does access the Coinbase API but does not buy or sell any crypto.
