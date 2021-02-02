@@ -121,6 +121,9 @@ if __name__ == "__main__":
         )
         logging.info(f"The {bot.lookback} day moving average is {bot.moving_average}.")
 
+        # from here down is just for demonstration
+        # we would want to call the API to see what we're holding
+
         if bot.current_spot_price > bot.moving_average:
             if bot.holding:
                 bot.sell()
