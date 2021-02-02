@@ -1,0 +1,12 @@
+version: '3'
+services:
+  cb:
+    build: ./src
+    environment:
+      - CB_API_KEY
+      - CB_API_SECRET
+      - DAYS=10
+      - CURRENCY=BTC
+    command:
+      - python
+      - /app/app.py
