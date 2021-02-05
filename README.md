@@ -15,5 +15,5 @@ The bot does access the Coinbase API but does not buy or sell any crypto.
 
 ## Thoughts
 
-We should also check Coinbase Pro: https://docs.pro.coinbase.com/.
-The API may be more complex to use as there is no official Python library, but Coinbase Pro charges signficantly less in fees.
+After doing some more research, I believe the Coinbase Pro API is a better option.
+I explored that one here: https://github.com/kjmerf/hello_cb_pro.
