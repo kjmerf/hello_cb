@@ -2,7 +2,6 @@ from datetime import datetime
 from datetime import timedelta
 import logging
 import os
-from time import sleep
 
 from coinbase.wallet.client import Client
 
@@ -18,9 +17,8 @@ class CBT:
         self.api_secret = api_secret
         self.currency = currency
         self.lookback = lookback
-        self.holding = True
         self.current_spot_price = None
-        self.historical_spot_prices = {}
+        self.historical_spot_prices = []
         self.moving_average = None
 
     def yield_dates(self):
@@ -46,52 +44,21 @@ class CBT:
 
     def get_historical_spot_prices(self):
 
-        logging.info(f"Getting historical {self.currency} spot prices...")
         for date in self.yield_dates():
             date = date.strftime("%Y-%m-%d")
-            if date not in self.historical_spot_prices:
-                response = self.client.get_spot_price(
-                    currency_pair=f"{currency}-USD", date=date
-                )
-                self.historical_spot_prices[date] = float(response["amount"])
+            logging.info(f"Getting the {self.currency} spot price for {date}...")
+            response = self.client.get_spot_price(
+                currency_pair=f"{currency}-USD", date=date
+            )
+            self.historical_spot_prices.append(float(response["amount"]))
         return self.historical_spot_prices
-
-    def remove_old_prices(self):
-
-        dates = [date.strftime("%Y-%m-%d") for date in self.yield_dates()]
-        dates_to_remove = []
-        for date, price in self.historical_spot_prices.items():
-            if date not in dates:
-                dates_to_remove.append(date)
-
-        for date in dates_to_remove:
-            self.historical_spot_prices.pop(date)
 
     def get_moving_average(self):
 
-        prices = list(self.historical_spot_prices.values())
-        self.moving_average = round(sum(prices) / len(prices), 2)
+        self.moving_average = round(
+            sum(self.historical_spot_prices) / len(self.historical_spot_prices), 2
+        )
         return self.moving_average
-
-    def buy(self):
-
-        # this is just a dummy function
-
-        if not self.holding:
-            logging.info(f"Buying {bot.currency} at {bot.current_spot_price}!")
-            self.holding = True
-        else:
-            raise Exception(f"I'm already holding {self.currency}!")
-
-    def sell(self):
-
-        # this is just a dummy function
-
-        if self.holding:
-            logging.info(f"Selling {bot.currency} at {bot.current_spot_price}!")
-            self.holding = False
-        else:
-            raise Exception(f"I'm not holding any {self.currency}!")
 
 
 if __name__ == "__main__":
@@ -100,44 +67,12 @@ if __name__ == "__main__":
     api_secret = os.getenv("CB_API_SECRET")
     currency = os.getenv("CURRENCY")
     lookback = int(os.getenv("LOOKBACK"))
-    sleep_seconds = int(os.getenv("SLEEP_SECONDS"))
 
     bot = CBT(api_key, api_secret, currency, lookback)
     bot.get_client()
+    bot.get_current_spot_price()
+    bot.get_historical_spot_prices()
+    bot.get_moving_average()
 
-    while True:
-
-        yesterday = datetime.utcnow().date() - timedelta(days=1)
-
-        if yesterday.strftime("%Y-%m-%d") not in bot.historical_spot_prices:
-            bot.get_historical_spot_prices()
-            bot.remove_old_prices()
-            bot.get_moving_average()
-
-        bot.get_current_spot_price()
-
-        logging.info(
-            f"The current spot price of {bot.currency} is {bot.current_spot_price}."
-        )
-        logging.info(f"The {bot.lookback} day moving average is {bot.moving_average}.")
-
-        # from here down is just for demonstration
-        # we would want to call the API to see what we're holding
-
-        if bot.current_spot_price > bot.moving_average:
-            if bot.holding:
-                bot.sell()
-            else:
-                logging.info(
-                    f"I'd sell {bot.currency} at these prices but I don't have any!"
-                )
-        else:
-            if bot.holding:
-                logging.info(
-                    f"I'd buy {bot.currency} at these prices but I'm already holding!"
-                )
-            else:
-                bot.buy()
-
-        logging.info(f"Going to sleep for {sleep_seconds} seconds...")
-        sleep(sleep_seconds)
+    logging.info(f"The current spot price is {bot.current_spot_price}.")
+    logging.info(f"The {bot.lookback} day moving average is {bot.moving_average}.")
